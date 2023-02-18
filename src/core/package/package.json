@@ -1,0 +1,24 @@
+{
+  "name": "nest-prisma-client",
+  "version": "1.0.0",
+  "description": "API Client code generated from nest-starter project",
+  "main": "./core/index.ts",
+  "types": "./core/index.d.ts",
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "version": "npm run format && git add -A core",
+    "postversion": "git push && git push --tags",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api"
+  ],
+  "author": "Alexandre Brun-Giglio",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.8.4"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
