@@ -31,4 +31,7 @@ export class UserDto {
 
     @ApiPropertyOptional({ required: false, default: true })
     enabled?: boolean;
+
+    @ApiPropertyOptional()
+    roles: string[];
 }

@@ -6,10 +6,30 @@ import { UserDto } from './user.dto';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
   createOrUpdate(userDto: UserDto) {
+    const roleObjects = userDto.roles.map(role => ({ role: { connect: { name: role } } }));
     return this.prisma.user.upsert({
       where: { email: userDto.email },
-      create: userDto,
-      update: userDto,
+      create: {
+        email: userDto.email,
+        firstname: userDto.firstname,
+        lastname: userDto.lastname,
+        password: userDto.password,
+        enabled: userDto.enabled,
+        roles: {
+          create: roleObjects,
+        },
+      },
+      update: {
+        id: userDto.id,
+        email: userDto.email,
+        firstname: userDto.firstname,
+        lastname: userDto.lastname,
+        password: userDto.password,
+        enabled: userDto.enabled,
+        roles: {
+          create: roleObjects,
+        },
+      },
     });
   }
 
