@@ -1,5 +1,6 @@
 import {
   ExecutionContext,
+  ForbiddenException,
   Inject,
   Injectable,
   Optional,
@@ -7,11 +8,8 @@ import {
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request, Response } from 'express';
-import { AppErrorWithMessage } from '../core/app-error';
-import { ApplicationBaseService } from '../core/base-service';
-import { UserDto } from '../modules/users/user.dto';
-import { JwtPayload } from '../types/jwt-payload';
+import { UserDto } from '../../modules/users/user.dto';
+import { JwtPayload } from '../types/payload';
 
 export type JwtDecodeError =
   | 'TokenExpiredError'
@@ -23,7 +21,7 @@ export interface DecodeTokenResponse {
   error?: JwtDecodeError;
 }
 @Injectable({ scope: Scope.REQUEST })
-export class AuthToolsService extends ApplicationBaseService {
+export class AuthToolsService {
   public static getRequestFromContext(context: ExecutionContext): Request {
     if (!context) return null;
     const httpContext = context.switchToHttp();
@@ -95,9 +93,7 @@ export class AuthToolsService extends ApplicationBaseService {
   constructor(
     @Optional() @Inject(REQUEST) private readonly request: Request,
     public readonly jwtService: JwtService,
-  ) {
-    super();
-  }
+  ) { }
   public getCurrentPayload(ignoreExpiration: boolean): JwtPayload {
     if (this.request)
       return AuthToolsService.getJwtPayloadFromRequest(
@@ -113,6 +109,6 @@ export async function AuthCustomRules(user: UserDto) {
   //Write here custom auth rules
   const ok = !!user;
   if (!ok) {
-    throw new AppErrorWithMessage('Custom error', 403);
+    throw new ForbiddenException('Forbidden resource');
   }
 }

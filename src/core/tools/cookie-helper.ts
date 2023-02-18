@@ -1,5 +1,5 @@
 import { CookieOptions, Request, Response } from 'express';
-import { refreshTokenLsKey } from '../types/enums';
+import { Environment } from '../environments';
 
 export class CookieHelpers {
   static setCookie(
@@ -13,7 +13,7 @@ export class CookieHelpers {
   }
   static getCookie(req: Request, key: string) {
     if (!req || !req.headers.cookie) return null;
-    const cookie = req.headers.cookie.replace(refreshTokenLsKey + '=', '');
+    const cookie = req.headers.cookie.replace(Environment.REFRESH_TOKEN_SECRET + '=', '');
     return cookie;
   }
   static deleteCookie(res: Response, key: string) {

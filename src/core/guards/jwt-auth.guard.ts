@@ -7,10 +7,10 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { List } from 'linqts';
-import { AuthToolsService, DecodeTokenResponse } from '../helpers/auth-helper';
-import { CookieHelpers } from '../helpers/cookie-helper';
-import { UsersService } from '../modules/users/users.service';
-import { refreshTokenLsKey } from '../types/enums';
+import { UsersService } from '../../modules/users/users.service';
+import { Environment } from '../environments';
+import { AuthToolsService, DecodeTokenResponse } from '../tools/auth-helper';
+import { CookieHelpers } from '../tools/cookie-helper';
 import { ExpiredTokenException } from './expired-token';
 
 @Injectable()
@@ -33,10 +33,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return user;
   }
 
-  async canAccessForRole(
-    context: ExecutionContext,
-    roles?: string[],
-  ): Promise<boolean> {
+  async canAccessForRole(context: ExecutionContext, roles?: string[]): Promise<boolean> {
     const request = AuthToolsService.getRequestFromContext(context);
     const decodeResponse = this.getAccessTokenFromHeadersOrCookie(request);
     if (decodeResponse?.payload) {
@@ -54,7 +51,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (request) {
         const refreshTokenFromCookie = CookieHelpers.getCookie(
           request,
-          refreshTokenLsKey,
+          Environment.REFRESH_TOKEN_SECRET,
         );
         if (refreshTokenFromCookie) {
           const findUserResponse = await this.usersService.findOne({
@@ -72,9 +69,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return false;
   }
 
-  private getAccessTokenFromHeadersOrCookie(
-    request: Request,
-  ): DecodeTokenResponse {
+  private getAccessTokenFromHeadersOrCookie(request: Request): DecodeTokenResponse {
     if (!request) return { error: 'NoRequestData' };
     let decodeResponse = AuthToolsService.getJwtPayloadFromRequest(
       this.jwtService,

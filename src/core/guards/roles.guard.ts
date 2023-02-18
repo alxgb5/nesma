@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../modules/users/users.service';
+import { UsersService } from '../../modules/users/users.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Injectable()
