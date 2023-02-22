@@ -69,7 +69,7 @@ export class AuthService {
             throw new BadRequestException('Email is already registered');
         }
 
-        const userRole = await this.prisma.role.findUnique({ where: { name: RolesList.user } });
+        const userRole = await this.prisma.userRole.findUnique({ where: { code: RolesList.user } });
 
         const newUser = new UserDto();
         newUser.email = request.email;
@@ -78,14 +78,14 @@ export class AuthService {
         newUser.lastname = request.lastname;
 
         const _newUser = await this.userService.createOrUpdate(newUser);
-        await this.prisma.user.update({ where: { id: _newUser.id }, data: { roles: { connect: { name: RolesList.user } } } });
+        await this.prisma.user.update({ where: { id: _newUser.id }, data: { roles: { connect: { code: RolesList.user } } } });
 
         const payload: JwtPayload = {
             id: _newUser.id.toLocaleString(),
             email: _newUser.email,
             firstname: _newUser.firstname,
             lastname: _newUser.lastname,
-            roles: [userRole.name],
+            roles: [userRole.code],
             enabled: _newUser.enabled,
         };
 
