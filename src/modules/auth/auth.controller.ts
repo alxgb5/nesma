@@ -13,8 +13,8 @@ export class AuthController {
     }
 
     @Post('register')
-    async register() {
-
+    async register(@Body() requestModel: AuthRequest) {
+        return this.authService.register(requestModel);
     }
 
     @Post('refresh')
