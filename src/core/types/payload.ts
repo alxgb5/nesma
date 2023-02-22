@@ -1,12 +1,11 @@
 export interface JwtPayload {
-    username: string;
     id: string;
     roles: string[];
-    mail: string;
+    email: string;
     firstname: string;
     lastname?: string;
     imgUrl?: string;
-    disabled: boolean;
+    enabled: boolean;
     iat?: string;
     exp?: string;
 }

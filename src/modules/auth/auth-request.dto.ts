@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class AuthRequest {
     @IsNotEmpty()
@@ -10,6 +10,14 @@ export class AuthRequest {
     @IsNotEmpty()
     @ApiProperty()
     password: string;
+
+    @IsString()
+    @ApiPropertyOptional()
+    firstname?: string;
+
+    @IsString()
+    @ApiPropertyOptional()
+    lastname?: string;
 }
 
 export class AuthResponse {
