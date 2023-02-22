@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import { UserRoleDto } from './users-roles/user-role.dto';
 
 export class UserDto {
     @ApiPropertyOptional()
@@ -32,6 +33,8 @@ export class UserDto {
     @ApiPropertyOptional({ required: false, default: true })
     enabled?: boolean;
 
+    @ApiPropertyOptional({ isArray: true, type: UserRoleDto })
+    roles: UserRoleDto[];
     @ApiPropertyOptional()
-    roles: string[];
+    refreshToken?: string;
 }

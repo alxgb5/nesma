@@ -1,23 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserDto } from './user.dto';
-
+import { MainHelpers } from '../../core/tools/main-helper';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) { }
-  createOrUpdate(userDto: UserDto) {
-    const roleObjects = userDto.roles.map(role => ({ role: { connect: { name: role } } }));
+  async createOrUpdate(userDto: UserDto) {
+    const hashedPassword = await MainHelpers.hashPassword(userDto.password);
     return this.prisma.user.upsert({
       where: { email: userDto.email },
       create: {
         email: userDto.email,
         firstname: userDto.firstname,
         lastname: userDto.lastname,
-        password: userDto.password,
+        password: hashedPassword,
         enabled: userDto.enabled,
         roles: {
-          create: roleObjects,
-        },
+          connect: userDto.roles.map((role) => ({ name: role.code })),
+        }
       },
       update: {
         id: userDto.id,
@@ -26,9 +26,6 @@ export class UsersService {
         lastname: userDto.lastname,
         password: userDto.password,
         enabled: userDto.enabled,
-        roles: {
-          create: roleObjects,
-        },
       },
     });
   }
@@ -38,7 +35,7 @@ export class UsersService {
   }
 
   findOne(id: number) {
-    return this.prisma.user.findUniqueOrThrow({ where: { id } });
+    return this.prisma.user.findUniqueOrThrow({ where: { id }, include: { roles: true } });
   }
 
   remove(id: number) {
