@@ -16,7 +16,7 @@ export class UsersService {
         password: hashedPassword,
         enabled: userDto.enabled,
         roles: {
-          connect: userDto.roles.map((role) => ({ name: role.code })),
+          connect: userDto.roles.map((role) => ({ code: role.code })),
         }
       },
       update: {
@@ -26,6 +26,9 @@ export class UsersService {
         lastname: userDto.lastname,
         password: userDto.password,
         enabled: userDto.enabled,
+        roles: {
+          connect: userDto.roles.map((role) => ({ code: role.code })),
+        }
       },
     });
   }

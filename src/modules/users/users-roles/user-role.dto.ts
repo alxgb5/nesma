@@ -8,7 +8,7 @@ export class UserRoleDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    name: string;
+    code: string;
 
     @ApiPropertyOptional({ isArray: true, type: UserDto })
     users: UserDto[];
