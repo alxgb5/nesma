@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { GenericResponse } from '../../core/types/generic-response';
 
 export class AuthRequest {
     @IsNotEmpty()
@@ -31,7 +32,7 @@ export class LoginRequest {
     password: string;
 }
 
-export class AuthResponse {
+export class AuthResponse extends GenericResponse {
     @ApiProperty()
     accessToken: string;
 

@@ -21,7 +21,7 @@ export class AuthService {
 
     async login(requestModel: LoginRequest): Promise<AuthResponse> {
         const user = await this.prisma.user.findUnique({
-            where: { email: requestModel.email },
+            where: { email: requestModel.email }, include: { roles: true },
         });
 
         if (!user) {
@@ -38,7 +38,16 @@ export class AuthService {
             throw new NotFoundException('Account is not enabled');
         }
 
-        const refreshToken = this.jwtService.sign(user, { secret: Environment.REFRESH_TOKEN_SECRET });
+        const payload: JwtPayload = {
+            id: user.id.toLocaleString(),
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            roles: [user.roles.map((role) => role.code).toString()],
+            enabled: user.enabled,
+        };
+
+        const refreshToken = this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET });
 
         await this.prisma.user.update({
             where: { id: user.id },
@@ -46,8 +55,9 @@ export class AuthService {
         });
 
         return {
-            accessToken: this.jwtService.sign(user, { secret: Environment.ACCESS_TOKEN_SECRET }),
+            accessToken: this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET }),
             refreshToken: refreshToken,
+            success: true,
         };
     }
 
@@ -95,10 +105,10 @@ export class AuthService {
             data: { refreshToken: refreshToken },
         });
 
-        return {
-            accessToken: this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET, }),
-            refreshToken: refreshToken,
-        };
+        response.accessToken = this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET });
+        response.refreshToken = refreshToken;
+        // response.success = true;
+        return response;
     }
 
     async refresh() { }
