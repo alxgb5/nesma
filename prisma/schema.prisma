@@ -16,7 +16,7 @@ model User {
   lastname     String?
   password     String
   enabled      Boolean    @default(true)
-  refreshToken String?
+  refreshToken String?    @db.Text()
   roles        UserRole[] @relation("UserToRole")
 }
 
