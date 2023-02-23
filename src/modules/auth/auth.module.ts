@@ -10,7 +10,11 @@ import { AuthService } from './auth.service';
         PassportModule.register({
             defaultStrategy: 'jwt',
         }),
-        JwtModule.register({}),
+        JwtModule.register({
+            signOptions: { expiresIn: '1d' },
+            privateKey: process.env.REFRESH_TOKEN_SECRET,
+            publicKey: process.env.ACCESS_TOKEN_SECRET,
+        }),
     ],
     controllers: [AuthController],
     providers: [

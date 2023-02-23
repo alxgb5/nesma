@@ -20,6 +20,17 @@ export class AuthRequest {
     lastname?: string;
 }
 
+export class LoginRequest {
+    @IsNotEmpty()
+    @IsEmail()
+    @ApiProperty()
+    email: string;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    password: string;
+}
+
 export class AuthResponse {
     @ApiProperty()
     accessToken: string;

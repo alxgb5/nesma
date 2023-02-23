@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthRequest, AuthResponse } from './auth-request.dto';
+import { AuthRequest, AuthResponse, LoginRequest } from './auth-request.dto';
 import { compare } from 'bcrypt';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
@@ -19,7 +19,7 @@ export class AuthService {
     ) {
     }
 
-    async login(requestModel: AuthRequest): Promise<AuthResponse> {
+    async login(requestModel: LoginRequest): Promise<AuthResponse> {
         const user = await this.prisma.user.findUnique({
             where: { email: requestModel.email },
         });
@@ -47,12 +47,11 @@ export class AuthService {
 
         return {
             accessToken: this.jwtService.sign(user, { secret: Environment.ACCESS_TOKEN_SECRET }),
-            refreshToken: this.jwtService.sign(user, { secret: Environment.REFRESH_TOKEN_SECRET }),
+            refreshToken: refreshToken,
         };
     }
 
     async register(request: AuthRequest): Promise<AuthResponse> {
-        console.log("🚀 ~ AuthService ~ register ~ request:", request);
         const response: AuthResponse = new AuthResponse();
 
         if (!request.email || !request.password) {
@@ -76,9 +75,10 @@ export class AuthService {
         newUser.password = request.password;
         newUser.firstname = request.firstname;
         newUser.lastname = request.lastname;
+        newUser.enabled = true;
+        newUser.roles = [{ code: userRole.code }];
 
         const _newUser = await this.userService.createOrUpdate(newUser);
-        await this.prisma.user.update({ where: { id: _newUser.id }, data: { roles: { connect: { code: RolesList.user } } } });
 
         const payload: JwtPayload = {
             id: _newUser.id.toLocaleString(),
@@ -89,11 +89,16 @@ export class AuthService {
             enabled: _newUser.enabled,
         };
 
+        const refreshToken = this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET });
+        await this.prisma.user.update({
+            where: { id: _newUser.id },
+            data: { refreshToken: refreshToken },
+        });
 
         return {
             accessToken: this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET, }),
-            refreshToken: this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET }),
-        };;
+            refreshToken: refreshToken,
+        };
     }
 
     async refresh() { }
