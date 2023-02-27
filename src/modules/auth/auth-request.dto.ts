@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { GenericResponse } from '../../core/types/generic-response';
+import { GenericResponse } from '../../core/types/responses';
 
 export class AuthRequest {
     @IsNotEmpty()
