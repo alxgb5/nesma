@@ -91,7 +91,7 @@ export class AuthToolsService {
   }
 
   constructor(
-    @Optional() @Inject(REQUEST) private readonly request: Request,
+    @Optional() @Inject(REQUEST) private readonly request: any,
     public readonly jwtService: JwtService,
   ) { }
   public getCurrentPayload(ignoreExpiration: boolean): JwtPayload {

@@ -6,6 +6,8 @@ export interface IEnvironment {
     SMTP_PASS: string;
     ACCESS_TOKEN_SECRET: string;
     REFRESH_TOKEN_SECRET: string;
+    TOKEN_KEY: string;
+    TOKEN_EXPIRATION: string;
 }
 
 const EnvironmentData: IEnvironment = {
@@ -16,6 +18,8 @@ const EnvironmentData: IEnvironment = {
     SMTP_PASS: process.env.SMTP_PASS,
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+    TOKEN_KEY: process.env.TOKEN_KEY,
+    TOKEN_EXPIRATION: process.env.TOKEN_EXPIRATION || '7d',
 };
 
 export const Environment = EnvironmentData;

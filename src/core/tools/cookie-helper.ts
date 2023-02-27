@@ -11,7 +11,7 @@ export class CookieHelpers {
     if (!res) return;
     res.cookie(key, value, options);
   }
-  static getCookie(req: Request, key: string) {
+  static getCookie(req: any, key: string) {
     if (!req || !req.headers.cookie) return null;
     const cookie = req.headers.cookie.replace(Environment.REFRESH_TOKEN_SECRET + '=', '');
     return cookie;
