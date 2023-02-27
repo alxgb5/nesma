@@ -88,20 +88,20 @@ export class AuthService {
         newUser.enabled = true;
         newUser.roles = [{ code: userRole.code }];
 
-        const _newUser = await this.userService.createOrUpdate(newUser);
+        const _createUserResponse = await this.userService.createOrUpdate(newUser);
 
         const payload: JwtPayload = {
-            id: _newUser.id.toLocaleString(),
-            email: _newUser.email,
-            firstname: _newUser.firstname,
-            lastname: _newUser.lastname,
+            id: _createUserResponse.data.id.toLocaleString(),
+            email: _createUserResponse.data.email,
+            firstname: _createUserResponse.data.firstname,
+            lastname: _createUserResponse.data.lastname,
             roles: [userRole.code],
-            enabled: _newUser.enabled,
+            enabled: _createUserResponse.data.enabled,
         };
 
         const refreshToken = this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET });
         await this.prisma.user.update({
-            where: { id: _newUser.id },
+            where: { id: _createUserResponse.data.id },
             data: { refreshToken: refreshToken },
         });
 
