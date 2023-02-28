@@ -18,6 +18,9 @@ async function bootstrap() {
     .setTitle('NestJS Prisma Boilerplate')
     .setDescription('The NestJS Prisma Boilerplate API description')
     .setVersion('1.0')
+    .addBearerAuth()
+    .setContact('Alexandre Brun-Giglio', null, 'alexandre.brungiglio@gmail.com')
+    .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
