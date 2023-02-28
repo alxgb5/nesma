@@ -1,21 +1,16 @@
 import { applyDecorators, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ErrorResponse } from '../types/responses';
 
 interface ApiDocsParamms {
   summary: string;
   operationId: string;
-  resStatus: HttpStatus;
-  resType: any;
+  badRequestMessage: any;
 }
 
 export function ApiDocs(params: ApiDocsParamms) {
   return applyDecorators(
     ApiOperation({ summary: params.summary, operationId: params.operationId }),
-    ApiResponse({
-      status: params.resStatus ?? HttpStatus.OK,
-      description: params.summary,
-      type: params.resType,
-    }),
-    HttpCode(params.resStatus ?? HttpStatus.OK),
+    ApiBadRequestResponse({ description: params.badRequestMessage, type: ErrorResponse }),
   );
 }

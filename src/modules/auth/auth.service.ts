@@ -88,7 +88,7 @@ export class AuthService {
         newUser.enabled = true;
         newUser.roles = [{ code: userRole.code }];
 
-        const _createUserResponse = await this.userService.createOrUpdate(newUser);
+        const _createUserResponse = await this.userService.create(newUser);
 
         const payload: JwtPayload = {
             id: _createUserResponse.data.id.toLocaleString(),

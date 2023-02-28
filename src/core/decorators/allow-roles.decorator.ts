@@ -7,6 +7,6 @@ export function AllowRoles(...roles: string[]) {
     SetMetadata('roles', roles),
     ApiBearerAuth(),
     UseGuards(RolesGuard),
-    ApiUnauthorizedResponse({ description: 'Unauthorized"' }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   );
 }
