@@ -5,6 +5,7 @@ import {
   Injectable,
   Optional,
   Scope,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
@@ -102,6 +103,13 @@ export class AuthToolsService {
         ignoreExpiration,
       ).payload;
     return null;
+  }
+
+  public checkUserPayload() {
+    const payload = this.getCurrentPayload(false);
+    if (!payload || !payload.id)
+      throw new UnauthorizedException("Vous n'êtes pas connecté.");
+    else return payload;
   }
 }
 
