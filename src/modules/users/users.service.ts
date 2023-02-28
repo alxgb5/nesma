@@ -5,13 +5,12 @@ import { MainHelpers } from '../../core/tools/main-helper';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) { }
-  async createOrUpdate(userDto: UserDto): Promise<GetUser> {
+  async create(userDto: UserDto): Promise<GetUser> {
     const response = new GetUser();
     try {
       const hashedPassword = await MainHelpers.hashPassword(userDto.password);
-      const action = await this.prisma.user.upsert({
-        where: { email: userDto.email },
-        create: {
+      const action = await this.prisma.user.create({
+        data: {
           email: userDto.email,
           firstname: userDto.firstname,
           lastname: userDto.lastname,
@@ -21,7 +20,22 @@ export class UsersService {
             connect: userDto.roles?.map((role) => ({ code: role.code })),
           }
         },
-        update: {
+        include: { roles: true },
+      });
+      response.data = action;
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to create user: ${error.message}`);
+    }
+    return response;
+  }
+
+  async update(userDto: UserDto): Promise<GetUser> {
+    const response = new GetUser();
+    try {
+      const action = await this.prisma.user.update({
+        where: { email: userDto.email },
+        data: {
           id: userDto.id,
           email: userDto.email,
           firstname: userDto.firstname,
@@ -37,7 +51,7 @@ export class UsersService {
       response.data = action;
       response.success = true;
     } catch (error) {
-      throw new InternalServerErrorException(`Failed to create or update user: ${error.message}`);
+      throw new InternalServerErrorException(`Failed to update user: ${error.message}`);
     }
     return response;
   }
