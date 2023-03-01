@@ -1,9 +1,9 @@
 {
   "name": "nest-prisma-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "API Client code generated from nest-starter project",
-  "main": "./core/index.ts",
-  "types": "./core/index.d.ts",
+  "main": "./swagger/index.ts",
+  "types": "./swagger/index.d.ts",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "version": "npm run format && git add -A core",

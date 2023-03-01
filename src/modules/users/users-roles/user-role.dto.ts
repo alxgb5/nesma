@@ -10,8 +10,8 @@ export class UserRoleDto {
     @IsNotEmpty()
     code: string;
 
-    @ApiPropertyOptional({ isArray: true, type: UserDto })
-    users?: UserDto[];
+    // @ApiPropertyOptional({ isArray: true, type: UserDto })
+    // users?: UserDto[];
 }
 
 export class RoleDto {

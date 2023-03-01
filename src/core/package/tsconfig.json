@@ -13,7 +13,7 @@
     "allowJs": true
   },
   "include": [
-    "codegen"
+    "swagger"
   ],
   "exclude": [
     "node_modules",

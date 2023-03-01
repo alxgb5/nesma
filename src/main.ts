@@ -24,7 +24,18 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  app.use('/docs/swagger.json', (req, res) => res.send(document));
+
+  SwaggerModule.setup('docs', app, document, {
+    swaggerUrl: '/docs/swagger.json',
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerOptions: {
+      docExpansion: 'list',
+      filter: true,
+      showRequestDuration: true,
+    }
+  });
 
   await app.listen(3000);
 }
