@@ -4,11 +4,20 @@ import { RolesList } from '../src/core/types/enums';
 const prisma = new PrismaClient();
 
 async function seedDb() {
-    const defaultuser = await prisma.user.findUnique({ where: { email: 'user@localhost.com' } });
+    await prisma.$connect();
+
+    if (!(await prisma.userRole.findMany()).length) {
+        await prisma.userRole.createMany({
+            data: [
+                { code: RolesList.admin },
+                { code: RolesList.user },
+            ],
+        });
+    }
+
+    const defaultuser = await prisma.user.findFirst({ where: { email: 'user@localhost.com' } });
 
     if (!defaultuser) {
-        console.log(1);
-
         await prisma.user.create({
             data: {
                 email: 'user@localhost.com',
@@ -23,14 +32,7 @@ async function seedDb() {
         });
     }
 
-    if (!(await prisma.userRole.findMany()).length) {
-        await prisma.userRole.createMany({
-            data: [
-                { code: RolesList.admin },
-                { code: RolesList.user },
-            ],
-        });
-    }
+
 
 }
 
