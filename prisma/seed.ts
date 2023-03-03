@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { MainHelpers } from '../src/core/tools/main-helper';
 import { RolesList } from '../src/core/types/enums';
 
 const prisma = new PrismaClient();
@@ -18,10 +19,11 @@ async function seedDb() {
     const defaultuser = await prisma.user.findFirst({ where: { email: 'user@localhost.com' } });
 
     if (!defaultuser) {
+        const hasedPassword = await MainHelpers.hashPassword('password');
         await prisma.user.create({
             data: {
                 email: 'user@localhost.com',
-                password: 'password',
+                password: hasedPassword,
                 firstname: 'John',
                 lastname: 'Doe',
 
