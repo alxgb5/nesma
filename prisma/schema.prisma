@@ -8,16 +8,20 @@ datasource db {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  email        String     @unique
-  firstname    String?
-  lastname     String?
-  password     String
-  enabled      Boolean    @default(true)
-  refreshToken String?    @db.Text()
-  roles        UserRole[] @relation("UserToRole")
+  id                   Int        @id @default(autoincrement())
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  email                String     @unique
+  firstname            String?
+  lastname             String?
+  password             String
+  enabled              Boolean    @default(true)
+  refreshToken         String?    @db.Text()
+  roles                UserRole[] @relation("UserToRole")
+  activateAccountToken String?    @db.Text()
+  resetPasswordToken   String?    @db.Text()
+  birthdate            DateTime?
+  username             String?
 }
 
 model UserRole {
