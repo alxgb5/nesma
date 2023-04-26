@@ -1,7 +1,7 @@
 {
-  "name": "nest-prisma-client",
+  "name": "@alxgb/nesma-client",
   "version": "1.0.1",
-  "description": "API Client code generated from nest-starter project",
+  "description": "API Client code generated from nesma project",
   "main": "./swagger/index.ts",
   "types": "./swagger/index.d.ts",
   "scripts": {
