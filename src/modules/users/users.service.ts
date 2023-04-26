@@ -98,7 +98,7 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
     }

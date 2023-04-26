@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Patch } from '@nestjs/common';
-import { ApiAcceptedResponse, ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiDocs } from '../../core/decorators/api.decorator';
 import { UserLogged } from '../../core/decorators/user-logged.decorator';
 import { GetUser, GetUsers, UserDto } from './user.dto';
