@@ -1,7 +1,7 @@
 {
-    "modelPropertyNaming": "original",
-    "ngVersion": "11",
-    "withInterfaces": false,
-    "useSingleRequestParameter": true,
-    "validateSpec": false
+  "modelPropertyNaming": "original",
+  "ngVersion": "15",
+  "withInterfaces": false,
+  "useSingleRequestParameter": true,
+  "validateSpec": false
 }
