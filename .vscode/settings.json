@@ -1,9 +1,9 @@
 {
-    "angular.enable-strict-mode-prompt": false,
-    "workbench.colorCustomizations": {
-        "titleBar.activeBackground": "#1a6c8a",
-        "titleBar.activeForeground": "#ffffff",
-        "titleBar.inactiveBackground": "#1a6c8a",
-        "titleBar.inactiveForeground": "#ffffff"
-    }
+  "angular.enable-strict-mode-prompt": false,
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#2e1a8a",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#2e1a8a",
+    "titleBar.inactiveForeground": "#ffffff"
+  }
 }
