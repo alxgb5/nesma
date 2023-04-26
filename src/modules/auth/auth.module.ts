@@ -6,35 +6,34 @@ import { AccessTokenStrategy } from '../../core/guards/at.strategy';
 import { RolesGuard } from '../../core/guards/roles.guard';
 import { RefreshTokenStrategy } from '../../core/guards/rt.strategy';
 import { AuthToolsService } from '../../core/tools/auth-helper';
-import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 @Global()
 @Module({
-    imports: [
-        PassportModule.register({
-            defaultStrategy: 'jwt',
-        }),
-        JwtModule.register({
-            signOptions: { expiresIn: Environment.TOKEN_EXPIRATION },
-            privateKey: process.env.REFRESH_TOKEN_SECRET,
-            publicKey: process.env.ACCESS_TOKEN_SECRET,
-        }),
-    ],
-    controllers: [AuthController],
-    providers: [
-        AuthService,
-        RolesGuard,
-        AccessTokenStrategy,
-        RefreshTokenStrategy,
-        AuthToolsService,
-    ],
-    exports: [
-        AuthService,
-        PassportModule,
-        JwtModule,
-        AuthToolsService,
-        RolesGuard
-    ],
+  imports: [
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+    }),
+    JwtModule.register({
+      signOptions: { expiresIn: Environment.TOKEN_EXPIRATION },
+      privateKey: process.env.REFRESH_TOKEN_SECRET,
+      publicKey: process.env.ACCESS_TOKEN_SECRET,
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    RolesGuard,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+    AuthToolsService,
+  ],
+  exports: [
+    AuthService,
+    PassportModule,
+    JwtModule,
+    AuthToolsService,
+    RolesGuard
+  ],
 })
 export class AuthModule { }

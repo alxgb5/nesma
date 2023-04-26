@@ -1,122 +1,289 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthRequest, AuthResponse, LoginRequest } from './auth-request.dto';
+import {
+  AuthRequest,
+  AuthResponse,
+  ForgotPasswordModel,
+  LoginRequest,
+  RegisterResponse,
+  ResetPasswordModel,
+} from './auth-request.dto';
 import { compare } from 'bcrypt';
-import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
-import { Environment } from '../../core/environments';
-import { JwtPayload } from '../../core/types/payload';
+import { JwtPayload, TokenResponse } from '../../core/types/payload';
 import { UsersService } from '../users/users.service';
 import { UserDto } from '../users/user.dto';
 import { RolesList } from '../../core/types/enums';
+import { GenericResponse } from '../../core/types/responses';
+import { MainHelpers } from '../../core/tools/main-helper';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private prisma: PrismaService,
-        private jwtService: JwtService,
-        private userService: UsersService
-    ) {
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private userService: UsersService,
+  ) { }
+
+  async login(requestModel: LoginRequest): Promise<AuthResponse> {
+    const response = new AuthResponse();
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: requestModel.email },
+        include: {
+          roles: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Email is not registered');
+      }
+
+      const isPasswordValid = await this.comparePassword(
+        requestModel.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new NotFoundException('Password is not correct');
+      }
+
+      if (!user.enabled) {
+        throw new NotFoundException(
+          'Account is not enabled. Please enable your account',
+        );
+      }
+
+      const tokens = await this.generateToken(user);
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: tokens.refreshToken },
+      });
+
+      response.accessToken = tokens.accesToken;
+      response.refreshToken = tokens.refreshToken;
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
+    return response;
+  }
 
-    async login(requestModel: LoginRequest): Promise<AuthResponse> {
-        const user = await this.prisma.user.findUnique({
-            where: { email: requestModel.email }, include: { roles: true },
-        });
+  async register(request: AuthRequest): Promise<RegisterResponse> {
+    const response = new RegisterResponse();
+    try {
+      if (
+        !request.user.email ||
+        !request.user.password ||
+        !request.user.firstname ||
+        !request.user.lastname
+      ) {
+        throw new BadRequestException('User data is not completed');
+      }
 
-        if (!user) {
-            throw new NotFoundException('Email is not registered');
-        }
+      const user = await this.prisma.user.findUnique({
+        where: { email: request.user.email },
+      });
 
-        const isPasswordValid = await this.comparePassword(requestModel.password, user.password);
+      if (user?.id) {
+        throw new BadRequestException('Email is already registered');
+      }
 
-        if (!isPasswordValid) {
-            throw new NotFoundException('Password is not correct');
-        }
+      const userRole = await this.prisma.userRole.findUnique({
+        where: { code: RolesList.user },
+      });
 
-        if (!user.enabled) {
-            throw new NotFoundException('Account is not enabled');
-        }
+      const newUser = new UserDto();
+      newUser.email = request.user.email;
+      newUser.password = request.user.password;
+      newUser.firstname = request.user.firstname;
+      newUser.lastname = request.user.lastname;
+      newUser.username = request.user.firstname + ' ' + request.user.lastname;
+      newUser.activateAccountToken = randomStringGenerator();
+      newUser.enabled = false;
+      newUser.roles = [{ code: userRole.code }];
 
-        const payload: JwtPayload = {
-            id: user.id.toLocaleString(),
-            email: user.email,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            roles: [user.roles.map((role) => role.code).toString()],
-            enabled: user.enabled,
-        };
+      const _createUserResponse = await this.userService.create(newUser);
 
-        const refreshToken = this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET });
+      // await this.mailService.sendActiveAccountMail(newUser).catch(() => {
+      //   throw new BadRequestException('Error occured while sending mail');
+      // });
 
-        await this.prisma.user.update({
-            where: { id: user.id },
-            data: { refreshToken: refreshToken },
-        });
+      const tokens = await this.generateToken(_createUserResponse.data);
 
-        return {
-            accessToken: this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET }),
-            refreshToken: refreshToken,
-            success: true,
-        };
+      await this.prisma.user.update({
+        where: { id: _createUserResponse.data.id },
+        data: { refreshToken: tokens.refreshToken },
+      });
+
+      response.accessToken = tokens.accesToken;
+      response.refreshToken = tokens.refreshToken;
+      response.user = _createUserResponse.data;
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
+    return response;
+  }
 
-    async register(request: AuthRequest): Promise<AuthResponse> {
-        const response: AuthResponse = new AuthResponse();
+  async refresh(token: string): Promise<AuthResponse> {
+    const response = new AuthResponse();
+    try {
+      const user = this.jwtService.decode(token) as JwtPayload;
 
-        if (!request.email || !request.password) {
-            throw new BadRequestException('Email or password is not provided');
-        }
+      if (!user.id) throw new BadRequestException('Bad request');
 
-        if (!request.firstname || !request.lastname) {
-            throw new BadRequestException('Firstname or lastname is not provided');
-        }
+      const findUser = await this.prisma.user.findFirst({
+        where: { refreshToken: token },
+        include: { roles: true },
+      });
 
-        const user = await this.prisma.user.findUnique({ where: { email: request.email } });
+      if (!findUser?.id || findUser.enabled === false)
+        throw new ForbiddenException('Access denied');
 
-        if (user?.id) {
-            throw new BadRequestException('Email is already registered');
-        }
+      const tokens = await this.generateToken(findUser);
+      findUser.refreshToken = tokens?.refreshToken;
 
-        const userRole = await this.prisma.userRole.findUnique({ where: { code: RolesList.user } });
+      const _save = await this.userService.update(findUser);
+      if (!_save.success)
+        throw new InternalServerErrorException('Unable to update user token');
 
-        const newUser = new UserDto();
-        newUser.email = request.email;
-        newUser.password = request.password;
-        newUser.firstname = request.firstname;
-        newUser.lastname = request.lastname;
-        newUser.enabled = true;
-        newUser.roles = [{ code: userRole.code }];
-
-        const _createUserResponse = await this.userService.create(newUser);
-
-        const payload: JwtPayload = {
-            id: _createUserResponse.data.id.toLocaleString(),
-            email: _createUserResponse.data.email,
-            firstname: _createUserResponse.data.firstname,
-            lastname: _createUserResponse.data.lastname,
-            roles: [userRole.code],
-            enabled: _createUserResponse.data.enabled,
-        };
-
-        const refreshToken = this.jwtService.sign(payload, { secret: Environment.REFRESH_TOKEN_SECRET });
-        await this.prisma.user.update({
-            where: { id: _createUserResponse.data.id },
-            data: { refreshToken: refreshToken },
-        });
-
-        response.accessToken = this.jwtService.sign(payload, { secret: Environment.ACCESS_TOKEN_SECRET });
-        response.refreshToken = refreshToken;
-        // response.success = true;
-        return response;
+      response.refreshToken = tokens.refreshToken;
+      response.accessToken = tokens.accesToken;
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
+    console.log('🚀 ~ AuthService ~ refresh ~ response:', response);
+    return response;
+  }
 
-    async refresh() { }
-
-    async logout() { }
-
-
-    comparePassword(password: string, hash: string) {
-        return compare(password, hash);
+  async logout(payload: JwtPayload): Promise<GenericResponse> {
+    const response = new GenericResponse();
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.id },
+      });
+      if (!user) throw new BadRequestException('User not found');
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: null },
+      });
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
+    return response;
+  }
+
+  async activateAccount(token: string): Promise<GenericResponse> {
+    const response = new GenericResponse();
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { activateAccountToken: token },
+      });
+      if (!user) throw new BadRequestException('User not found');
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { enabled: true, activateAccountToken: null },
+      });
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+    return response;
+  }
+
+  async forgotPassword(request: ForgotPasswordModel): Promise<GenericResponse> {
+    const response = new GenericResponse();
+    try {
+      let user = await this.prisma.user.findFirst({
+        where: { email: request.email },
+      });
+      if (!user) throw new BadRequestException('User not found');
+
+      const token = await MainHelpers.generateUUID();
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { resetPasswordToken: token },
+      });
+
+      // await this.mailService.sendForgotPasswordMail(user).catch(() => {
+      //   throw new BadRequestException('Error occured while sending mail');
+      // });
+
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+    return response;
+  }
+
+  async resetPassword(request: ResetPasswordModel): Promise<GenericResponse> {
+    const response = new GenericResponse();
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { resetPasswordToken: request.resetPasswordToken },
+      });
+      if (!user) throw new BadRequestException('User not found');
+
+      const hashPassword = await MainHelpers.hashPassword(request.password);
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashPassword },
+      });
+
+      // await this.mailService.sendResetPasswordMail(user).catch(() => {
+      //   throw new BadRequestException('Error occured while sending mail');
+      // });
+
+      response.success = true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+    return response;
+  }
+
+  comparePassword(password: string, hash: string) {
+    return compare(password, hash);
+  }
+
+  async generateToken(user: UserDto): Promise<TokenResponse> {
+    if (!user) return null;
+    let roles: string[] = [];
+    if (user.roles) roles = user.roles.map((x) => x.code);
+
+    const userPayload: JwtPayload = {
+      id: user.id,
+      roles,
+      email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      enabled: user.enabled,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(userPayload, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+        expiresIn: '1800s',
+      }),
+      this.jwtService.signAsync(userPayload, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+        expiresIn: '7d',
+      }),
+    ]);
+
+    return {
+      accesToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
 }
