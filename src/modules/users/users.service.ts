@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { PrismaService } from '../prisma/prisma.service';
 import { GetUser, GetUsers, UserDto } from './user.dto';
 import { MainHelpers } from '../../core/tools/main-helper';
+import { v4 as uuidv4 } from 'uuid';
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) { }
@@ -16,6 +18,7 @@ export class UsersService {
           lastname: userDto.lastname,
           password: hashedPassword,
           enabled: userDto.enabled,
+          activateAccountToken: userDto.activateAccountToken ?? uuidv4(),
           roles: {
             connect: userDto.roles?.map((role) => ({ code: role.code })),
           }

@@ -5,7 +5,6 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AuthRequest,
@@ -23,6 +22,7 @@ import { UserDto } from '../users/user.dto';
 import { RolesList } from '../../core/types/enums';
 import { GenericResponse } from '../../core/types/responses';
 import { MainHelpers } from '../../core/tools/main-helper';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -107,7 +107,7 @@ export class AuthService {
       newUser.firstname = request.user.firstname;
       newUser.lastname = request.user.lastname;
       newUser.username = request.user.firstname + ' ' + request.user.lastname;
-      newUser.activateAccountToken = randomStringGenerator();
+      newUser.activateAccountToken = uuidv4();
       newUser.enabled = false;
       newUser.roles = [{ code: userRole.code }];
 
