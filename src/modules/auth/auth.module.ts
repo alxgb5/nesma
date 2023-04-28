@@ -8,6 +8,7 @@ import { RefreshTokenStrategy } from '../../core/guards/rt.strategy';
 import { AuthToolsService } from '../../core/tools/auth-helper';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { MailModule } from '../mail/mail.module';
 @Global()
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthService } from './auth.service';
       privateKey: process.env.REFRESH_TOKEN_SECRET,
       publicKey: process.env.ACCESS_TOKEN_SECRET,
     }),
+    MailModule
   ],
   controllers: [AuthController],
   providers: [

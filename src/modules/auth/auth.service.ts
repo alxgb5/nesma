@@ -23,6 +23,7 @@ import { RolesList } from '../../core/types/enums';
 import { GenericResponse } from '../../core/types/responses';
 import { MainHelpers } from '../../core/tools/main-helper';
 import { v4 as uuidv4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private userService: UsersService,
+    private mailService: MailService,
   ) { }
 
   async login(requestModel: LoginRequest): Promise<AuthResponse> {
@@ -113,9 +115,9 @@ export class AuthService {
 
       const _createUserResponse = await this.userService.create(newUser);
 
-      // await this.mailService.sendActiveAccountMail(newUser).catch(() => {
-      //   throw new BadRequestException('Error occured while sending mail');
-      // });
+      await this.mailService.sendActiveAccountMail(newUser).catch(() => {
+        throw new BadRequestException('Error occured while sending mail');
+      });
 
       const tokens = await this.generateToken(_createUserResponse.data);
 
@@ -216,9 +218,9 @@ export class AuthService {
         data: { resetPasswordToken: token },
       });
 
-      // await this.mailService.sendForgotPasswordMail(user).catch(() => {
-      //   throw new BadRequestException('Error occured while sending mail');
-      // });
+      await this.mailService.sendForgotPasswordMail(user).catch(() => {
+        throw new BadRequestException('Error occured while sending mail');
+      });
 
       response.success = true;
     } catch (error) {
@@ -241,9 +243,9 @@ export class AuthService {
         data: { password: hashPassword },
       });
 
-      // await this.mailService.sendResetPasswordMail(user).catch(() => {
-      //   throw new BadRequestException('Error occured while sending mail');
-      // });
+      await this.mailService.sendResetPasswordMail(user).catch(() => {
+        throw new BadRequestException('Error occured while sending mail');
+      });
 
       response.success = true;
     } catch (error) {
