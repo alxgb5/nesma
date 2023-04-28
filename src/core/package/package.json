@@ -16,9 +16,12 @@
   "author": "Alexandre Brun-Giglio",
   "license": "ISC",
   "devDependencies": {
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.5"
   },
   "files": [
     "lib/**/*"
-  ]
+  ],
+  "dependencies": {
+    "url-parse": "^1.5.10"
+  }
 }

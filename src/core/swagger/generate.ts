@@ -12,7 +12,7 @@ if (!fs.existsSync(swaggerCodegenConfig)) {
 }
 
 const exec = child_process.exec;
-exec(`npx openapi-generator-cli generate -i "${apiSwaggerUrl}" -g typescript -c "${swaggerCodegenConfig}" -o "${swaggerFrontOutput}" --type-mappings DateTime=Date`, function (err: any) {
+exec(`openapi-generator-cli generate -i "${apiSwaggerUrl}" -g typescript -c "${swaggerCodegenConfig}" -o "${swaggerFrontOutput}" --type-mappings DateTime=Date`, function (err: any) {
   if (err) {
     console.log(err);
     return;
